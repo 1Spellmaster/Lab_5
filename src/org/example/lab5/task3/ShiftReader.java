@@ -35,7 +35,7 @@ public class ShiftReader extends FilterReader {
             throw new IOException("Некоректний символ у вхідному файлі.");
         }
 
-        int shifted = shift(character);
+        int shifted = CharShift.shift(character, shift);
         if (shifted > Character.MAX_VALUE) {
             pendingCharacter = Character.lowSurrogate(shifted);
             return Character.highSurrogate(shifted);
@@ -58,11 +58,5 @@ public class ShiftReader extends FilterReader {
             buffer[offset + count++] = (char) character;
         }
         return count == 0 ? -1 : count;
-    }
-
-    private int shift(int character) {
-        int position = character < 0xD800 ? character : character - 0x800;
-        int shifted = Math.floorMod(position + shift, 0x10F800);
-        return shifted < 0xD800 ? shifted : shifted + 0x800;
     }
 }

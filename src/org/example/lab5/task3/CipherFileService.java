@@ -11,6 +11,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,7 +19,7 @@ import java.nio.file.Path;
 public class CipherFileService {
     public void encrypt(Path source, Path destination, char key) throws IOException {
         checkPaths(source, destination);
-        String encrypted = readShifted(new BufferedReader(
+        String encrypted = writeShifted(new BufferedReader(
                 new FileReader(source.toFile(), StandardCharsets.UTF_8)), key);
 
         try (ObjectOutputStream output = new ObjectOutputStream(
@@ -56,6 +57,18 @@ public class CipherFileService {
                 || (Files.exists(destination) && Files.isSameFile(source, destination))) {
             throw new IOException("Вхідний і вихідний файли повинні бути різними.");
         }
+    }
+
+    private String writeShifted(Reader source, int shift) throws IOException {
+        StringWriter result = new StringWriter();
+        try (Reader reader = source; ShiftWriter writer = new ShiftWriter(result, shift)) {
+            char[] buffer = new char[4096];
+            int count;
+            while ((count = reader.read(buffer)) != -1) {
+                writer.write(buffer, 0, count);
+            }
+        }
+        return result.toString();
     }
 
     private String readShifted(Reader source, int shift) throws IOException {
